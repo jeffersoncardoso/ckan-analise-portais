@@ -17,6 +17,7 @@ Minerando informações de todos os sites (NÃO CHAMAR pois vai gerar um trafego
 - As pastas de destino deve existir
 
 ```{r}
+#source('src/minerar_dados.R')
 #minerar_site(site = 'http://dados.al.gov.br', diretorio = './mineracao/Alagoas')
 #minerar_site(site = 'http://dados.fortaleza.ce.gov.br', diretorio = './mineracao/Fortaleza-CE')
 #minerar_site(site = 'http://dados.df.gov.br', diretorio = './mineracao/Distrito Federal')
@@ -31,11 +32,11 @@ Minerando informações de todos os sites (NÃO CHAMAR pois vai gerar um trafego
 #minerar_site(site = 'http://web.transparencia.pe.gov.br/ckan', diretorio = './mineracao/Pernambuco')
 #minerar_site(site = 'http://dados.natal.br', diretorio = './mineracao/Natal - RN')
 ```
+
 Carregando bibliotecas - Chame antes de todos
 
 ```{r}
 library("dplyr")
-source('src/minerar_dados.R')
 source('src/tratar_dados.R')
 
 source('src/grafico_populacao.R')
@@ -85,8 +86,6 @@ suppressWarnings({
     !(id %in% grupos$package_id)
   )
   print((1 - length(naoClassificados$id) / length(datasets$id)) * 100)
-  print(length(naoClassificados$id))
-  print(length(datasets$id))
 })
 ```
 
