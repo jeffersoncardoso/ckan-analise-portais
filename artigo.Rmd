@@ -1,0 +1,203 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#install.packages("dplyr")
+#install.packages("ckanr")
+#install.packages("ggplot2")
+#install.packages("wordcloud2")
+#install.packages("forcats")
+#install.packages("stringr")
+#install.packages("knitr")
+```
+
+Minerando informações de todos os sites (NÃO CHAMAR pois vai gerar um trafego no sites abaixo)
+- As pastas de destino deve existir
+
+```{r}
+#minerar_site(site = 'http://dados.al.gov.br', diretorio = './mineracao/Alagoas')
+#minerar_site(site = 'http://dados.fortaleza.ce.gov.br', diretorio = './mineracao/Fortaleza-CE')
+#minerar_site(site = 'http://dados.df.gov.br', diretorio = './mineracao/Distrito Federal')
+#minerar_site(site = 'http://www.transparencia.dadosabertos.mg.gov.br', diretorio = 'mineracao/Minas Gerais')
+#minerar_site(site = 'https://dados.pbh.gov.br', diretorio = './mineracao/Belo Horizonte - MG')
+#minerar_site(site = 'http://dados.rs.gov.br', diretorio = './mineracao/Rio Grande do Sul', inicio = 1)
+#minerar_site(site = 'http://dados.rs.gov.br', diretorio = './mineracao/Rio Grande do Sul', inicio = 1001)
+#minerar_site(site = 'http://datapoa.com.br/', diretorio = './mineracao/Porto Alegre - RS')
+#minerar_site(site = 'http://dados.sc.gov.br', diretorio = './mineracao/Santa Catarina')
+#minerar_site(site = 'http://catalogo.governoaberto.sp.gov.br/', diretorio = './mineracao/Sao Paulo')
+#minerar_site(site = 'http://dados.prefeitura.sp.gov.br', diretorio = './mineracao/Sao Paulo - SP')
+#minerar_site(site = 'http://web.transparencia.pe.gov.br/ckan', diretorio = './mineracao/Pernambuco')
+#minerar_site(site = 'http://dados.natal.br', diretorio = './mineracao/Natal - RN')
+```
+Carregando bibliotecas - Chame antes de todos
+
+```{r}
+library("dplyr")
+source('src/minerar_dados.R')
+source('src/tratar_dados.R')
+
+source('src/grafico_populacao.R')
+source('src/grafico_populacao_x_datasets.R')
+source('src/grafico_formatos.R')
+source('src/grafico_ano.R')
+source('src/grafico_tamanho.R')
+source('src/grafico_idade.R')
+source('src/grafico_5_estrelas.R')
+source('src/nuvem_palavras.R')
+```
+
+Lista de municipios e estados - Chame antes de todos
+
+```{r}
+estados <- c(
+  "Alagoas", "Distrito Federal", "Minas Gerais", "Rio Grande do Sul", "Santa Catarina", "Sao Paulo", "Pernambuco"
+)
+
+municipios <- c(
+  "Fortaleza-CE", "Belo Horizonte - MG", "Porto Alegre - RS", "Sao Paulo - SP", "Natal - RN"
+)
+
+sites <- c(estados, municipios)
+
+```
+
+Grafico população x datasets
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites)
+  grafico_populacao_x_datasets(datasets)
+})
+```
+
+
+O percentual de datasets que não estão classificados é:
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites)
+  tags <- buscar_todas_tags(sites)
+  grupos <- buscar_todos_grupos(sites)
+  naoClassificados <- datasets %>% filter(
+    !(id %in% tags$package_id)
+  ) %>% filter(
+    !(id %in% grupos$package_id)
+  )
+  print((1 - length(naoClassificados$id) / length(datasets$id)) * 100)
+  print(length(naoClassificados$id))
+  print(length(datasets$id))
+})
+```
+
+4.2 Categorização - Nuvem de palavras de todos
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites)
+  tags <- buscar_todas_tags(sites) %>% filter(package_id %in% datasets$id)
+  grupos <- buscar_todos_grupos(sites) %>% filter(package_id %in% datasets$id)
+  gerar_nuvem_palavras(datasets, tags, grupos, 0.5)
+})
+```
+
+4.2 Categorização - Nuvem de palavras de 2020
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites) %>% filter(format(as.Date(metadata_created), '%Y') == 2020)
+  tags <- buscar_todas_tags(sites) %>% filter(package_id %in% datasets$id)
+  grupos <- buscar_todos_grupos(sites) %>% filter(package_id %in% datasets$id)
+  gerar_nuvem_palavras(datasets, tags, grupos, 0.8)
+})
+```
+
+4.2 Categorização - Nuvem de palavras de São Paulo
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites) %>% filter(site == "Sao Paulo - SP")
+  tags <- buscar_todas_tags(sites) %>% filter(package_id %in% datasets$id)
+  grupos <- buscar_todos_grupos(sites) %>% filter(package_id %in% datasets$id)
+  gerar_nuvem_palavras(datasets, tags, grupos, 0.7)
+})
+```
+
+4.2 Categorização - Nuvem de palavras dos Estados
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(estados)
+  tags <- buscar_todas_tags(estados) %>% filter(package_id %in% datasets$id)
+  grupos <- buscar_todos_grupos(estados) %>% filter(package_id %in% datasets$id)
+  gerar_nuvem_palavras(datasets, tags, grupos, 0.6)
+})
+```
+
+4.2 Categorização - Nuvem de palavras dos Municípios
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(municipios)
+  tags <- buscar_todas_tags(municipios) %>% filter(package_id %in% datasets$id)
+  grupos <- buscar_todos_grupos(municipios) %>% filter(package_id %in% datasets$id)
+  gerar_nuvem_palavras(datasets, tags, grupos, 0.6)
+})
+
+```
+
+4.3 Idade - 
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites)
+  grafico_idade_criacao(datasets)
+  
+  tabela <- tabela_ano_criacao(datasets)
+  tabela
+  tabela %>% group_by(site) %>% summarise(minimo = min(ano), maximo = max(ano)) %>% arrange(minimo, maximo)
+})
+```
+
+4.4 Formato - Arquivos por formato
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites)
+  arquivos <- buscar_todos_arquivos(sites) %>% filter(package_id %in% datasets$id)
+  grafico_formatos(arquivos)
+})
+```
+
+4.4 Formato - Arquivos por formato ´- Proporção
+
+```{r}
+suppressWarnings({
+  datasets <- buscar_todos_datasets(sites)
+  arquivos <- buscar_todos_arquivos(sites) %>% filter(package_id %in% datasets$id)
+  grafico_proporcao_tabular(arquivos)
+})
+```
+
+
+4.5 Qualidade - Grafico 5 estrelas
+
+```{r}
+datasets <- buscar_todos_datasets(sites)
+arquivos <- buscar_todos_arquivos(sites) %>% filter(package_id %in% datasets$id)
+
+estrelas <- calcular_estrelas(datasets, arquivos)
+estrelas <- estrelas %>% group_by(estrela) %>% summarise(total = n())
+
+print(estrelas)
+
+ggplot(estrelas, aes(x=estrela, y=total)) %+% geom_bar(stat = "identity") %+% 
+  theme(axis.text.x = element_text(size=30), axis.text.y = element_text(size=15)) %+%
+  ylab("Arquivos") %+% xlab("")
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

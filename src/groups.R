@@ -6,9 +6,8 @@ library("ggplot2")
 library("stringr")
 
 
-
 sites <- list(
-  'br' = "http://dados.gov.br",
+  #'br' = "http://dados.gov.br",
   'alagoas' = "http://dados.al.gov.br",
   'fortaleza' = "http://dados.fortaleza.ce.gov.br",
   'brasilia' = "http://dados.df.gov.br",
@@ -21,8 +20,11 @@ sites <- list(
   'rs-tece' = "http://dados.tce.rs.gov.br",
   'sao-paulo' = "http://catalogo.governoaberto.sp.gov.br/",
   'poa' = "http://datapoa.com.br",
-  'sp' = "http://dados.prefeitura.sp.gov.br/"
+  'sp' = "http://dados.prefeitura.sp.gov.br/",
+  'sc' = "http://dados.sc.gov.br/"
 )
+
+package_search(q = 'created:2020-05-20')
 
 
 grupos <- listarGrupos("http://dados.gov.br")
@@ -41,7 +43,7 @@ listarDatasets("http://www.transparencia.dadosabertos.mg.gov.br")
 
 for (site in names(sites)) {
   datasets <- listarDatasets(sites[site])
-  write.csv2(datasets, file = paste('datasets/', site, '.csv', sep = ""), sep = ";")
+  write.csv2(datasets, file = paste('recursos/', site, '.csv', sep = ''), sep = ";")
 }
 
 
@@ -80,10 +82,58 @@ listarDatasets <- function(p_site, limit = 99999) {
 }
 
 
+dadosRS <- listarDatasets('http://dados.rs.gov.br')
+
+library("dplyr")
+
+listarPacotes <- function(p_site, limit = 99999) {
+  print(p_site)
+  pacotes <- package_list_current(limit = 99999, as = "table", url = p_site)
+  tabelaPacotes <- pacotes %>% select(id, name, type, license_id, license_title, num_resources)
+  
+  return(tabelaPacotes)
+}
+
+pacotes <- listarPacotes('http://dados.sc.gov.br', limit = 1000)
+pacotes$
 
 
-dados <- resource_search(q = 'name:', url = 'http://dados.gov.br', limit = 50000, as = 'table')
-dados = dados$results
+names(pacotes)
+
+length(pacotes)
+length(pacotes$resources)
+
+pacotes$results$resources
+length(pacotes$created)
+dadosRS$
+length(unique(pacotes$package_id))
+
+
+teste <- resource_search(
+  q = "name:agricultura", 
+  url = 'http://dados.rs.gov.br', 
+  as = 'table'
+)
+
+package_list(as = 'table', url = 'http://dados.sc.gov.br/')
+package_list
+
+teste <- package_list_current(as = 'table', limit = 1000, url = 'http://dados.al.gov.br')
+
+
+
+unique(dadosRS$package_id)
+
+pacote <- package_show(dadosRS$package_id[1], url = 'http://dados.rs.gov.br')
+pacote$
+
+listarPacotes <- function(p_site)  {
+  
+}
+
+
+
+
 
 unique(trimws(dados$format))
 
